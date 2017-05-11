@@ -1,0 +1,109 @@
+<?php
+public function search(){
+    header('Access-Control-Allow-Origin: *');
+    $data = json_decode(file_get_contents('php://input'));
+    $search=$data->{'search'};
+    if (ctype_digit($search)) {
+      $length=strlen($search);
+      if($length==6){
+        $pincode=$search;
+    $companybranch=DB::table('companydetails')->where('pincode',$pincode)->get();
+    $decode_branch=json_decode($companybranch,true);
+    $count=sizeof($decode_branch);
+    $i=0;
+    $json=[];
+    $json['flag']=22;
+    if($count>0){
+        while ($i<$count) {
+            $cid=$decode_branch[$i]['cid'];
+            $company=DB::table('company')->where('id',$cid)->first();
+            if($company!=""){
+                $subcat=DB::table('subcategory')->where('id',$company->{'subcatid'})->first();
+            if($subcat!=""){
+                $subcategory=$subcat->{'subcategory'};
+                $cat=DB::table('category')->where('id',$subcat->{'catid'})->first();
+                $category=$cat->{'name'};
+            }
+            else{
+                $subcategory="";
+                $category="";
+            }
+                $json['data'][]=array(
+                    'companyid'=>$company->{'id'},
+                    'branchid'=>$decode_branch[$i]['id'],
+                    'name'=>$company->{'name'},
+                    'website'=>$company->{'website'},
+                    'logo'=>"http://ecapi.hasotech.tk/".$company->{'logo'},
+                    'mobile'=>$decode_branch[$i]['mobile'],
+                    'address'=>$decode_branch[$i]['address'],
+                    'pincode'=>$decode_branch[$i]['pincode'],
+                    'district'=>$decode_branch[$i]['district'],
+                    'state'=>$decode_branch[$i]['state'],
+                    'email'=>$decode_branch[$i]['email'],
+                    'category'=>$category,
+                    'subcategory'=>$subcategory
+                    );
+            }
+            $i++;
+        }
+    }
+    }
+    elseif ($length==10) {
+      $mobile=$search;
+      $user = DB::table('profile')->where('mobile', $mobile)->get();
+      if($user=='[]') {
+        $json['flag']=0;
+        $json['def']="Invalid Mobile Number";
+    }
+    else{
+        $decode_user=json_decode($user,true);
+        $json['flag']=11;
+        $json['def']="Success";
+        $json['name']=$decode_user[0]['name'];
+        $json['email']=$decode_user[0]['email'];
+        $json['mobile']=$decode_user[0]['mobile'];
+        $json['mobile2']=$decode_user[0]['mobile2'];
+        $json['address']=$decode_user[0]['address'];
+        $json['pincode']=$decode_user[0]['pincode'];
+        $json['district']=$decode_user[0]['district'];
+        $json['state']=$decode_user[0]['state'];
+        $json['dob']=$decode_user[0]['dob'];
+        $json['gender']=$decode_user[0]['gender'];
+        $json['profilepic']="http://ecapi.hasotech.tk/".$decode_user[0]['profilepic'];
+        $json['cardtype']=$decode_user[0]['cardtype'];
+        $designation=DB::table('designation')->where('id',$decode_user[0]['designationid'])->first();
+        if($designation!=""){
+            $json['designation']=$designation->{'name'};
+        }
+        else{
+            $json['designation']="";
+        }
+        $company=DB::table('company')->where('id',$decode_user[0]['companyid'])->first();
+        if($company!=""){
+            $json['company_name']=$company->{'name'};
+            $json['company_logo']="http://ecapi.hasotech.tk/".$company->{'logo'};
+            $json['company_website']=$company->{'website'};
+            $subcat=DB::table('subcategory')->where('id',$company->{'subcatid'})->first();
+            if($subcat!=""){
+                $json['subcategory']=$subcat->{'subcategory'};
+                $cat=DB::table('category')->where('id',$subcat->{'catid'})->first();
+                $json['category']=$cat->{'name'};
+            }
+            else{
+                $json['subcategory']="";
+                $json['category']="";
+            }
+        }
+        else{
+            $json['company_name']="";
+            $json['company_logo']="";
+            $json['company_website']="";
+            $json['subcategory']="";
+            $json['category']="";
+        }
+        $company=DB::table('companydetails')->where('id',$decode_user[0]['branchid'])->first();
+        if($company!=""){
+            $json['company_mobile']=$company->{'mobile'};
+            $json['company_mobile2']=$company->{'mobile2'};
+            $json['company_address']=$co
+            ?>
